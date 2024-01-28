@@ -19,6 +19,7 @@ WHITE = (255, 255, 255)
 GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 BLACK = (0, 0, 0)
+BOARD_BACKGROUND_COLOR = BLACK
 
 # Направления движения
 UP = (0, -1)
@@ -117,7 +118,10 @@ class Apple(GameObject):
 
 
 def handle_keys():
-    """Обработка нажатий клавиш для управления змейкой."""
+    """
+    Обработка нажатий клавиш для управления змейкой.
+    Возвращает новое направление или None, если клавиша не была нажата.
+    """
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -135,13 +139,14 @@ def handle_keys():
 
 
 def draw_objects(surface, snake, apple):
-    """Отрисовка объектов на игровом поле и обновление экрана."""
-    surface.fill(BLACK)
+    """Отрисовка игровых объектов на игровом поле."""
+    surface.fill(BOARD_BACKGROUND_COLOR)
     snake.draw(surface)
     apple.draw(surface)
     score_text = f"Score: {snake.score}"
-    text_surface = pygame.font.SysFont(
-        "Arial", 36).render(score_text, True, WHITE)
+    text_surface = pygame.font.SysFont("Arial", 36).render(
+        score_text, True, WHITE
+    )
     surface.blit(text_surface, (5, 5))
     pygame.display.update()
 
