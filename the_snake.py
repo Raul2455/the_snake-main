@@ -1,4 +1,3 @@
-"""Простая игра в змейку, созданная с помощью Pygame."""
 # pylint: disable=no-member
 
 import random
@@ -141,9 +140,8 @@ def draw_objects(surface, snake, apple):
     snake.draw(surface)
     apple.draw(surface)
     score_text = f"Score: {snake.score}"
-    text_surface = pygame.font.SysFont('Arial', 36).render(
-        score_text, True, WHITE
-    )
+    text_surface = pygame.font.SysFont(
+        "Arial", 36).render(score_text, True, WHITE)
     surface.blit(text_surface, (5, 5))
     pygame.display.update()
 
@@ -170,5 +168,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-# Добавляем новую строку в конце файла
