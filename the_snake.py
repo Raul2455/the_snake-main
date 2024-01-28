@@ -1,50 +1,55 @@
-"""Игра 'Изгиб питона' на основе pygame."""
+# Простая игра в змейку, созданная с помощью Pygame.
+# pylint: disable=no-member
 
 import random
 import sys
 import pygame
 
-# Инициализация pygame
+# Ошибки, связанные с Pygame, игнорируются для Pylint
+# pylint: disable=no-member
+
+# Инициализация Pygame
 pygame.init()
 
-# Константы для настройки окна и игровой сетки
+# Размер дисплея, размер сетки и определения цвета
 SCREEN_WIDTH = 640
 SCREEN_HEIGHT = 480
 GRID_SIZE = 20
 GRID_WIDTH = SCREEN_WIDTH // GRID_SIZE
 GRID_HEIGHT = SCREEN_HEIGHT // GRID_SIZE
 
-# Цвета
+# Определения цвета
 WHITE = (255, 255, 255)
 GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 BLACK = (0, 0, 0)
 
-# Направления движения
+# Определения направлений
 UP = (0, -1)
 DOWN = (0, 1)
 LEFT = (-1, 0)
 RIGHT = (1, 0)
 
-# Цвет фона
-BOARD_BACKGROUND_COLOR = BLACK
+# Константы для начальных условий
+INITIAL_LENGTH = 1
+INITIAL_SCORE = 0
 
-# Инициализация экрана
+# Настройка экрана
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), 0, 32)
 pygame.display.set_caption("Изгиб питона")
 clock = pygame.time.Clock()
 
 
 class GameObject:
-    """Класс базового игрового объекта."""
+    """Класс для общих игровых объектов."""
 
     def __init__(self, position=(0, 0), body_color=WHITE):
-        """Инициализирует объект с позицией и цветом."""
+        """Инициализация игрового объекта с указанием положения и цвета."""
         self.position = position
         self.body_color = body_color
 
     def draw(self, surface):
-        """Отрисовывает объект на переданной поверхности."""
+        """Отрисовка объекта на игровой поверхности."""
         r = pygame.Rect(
             (self.position[0] * GRID_SIZE, self.position[1] * GRID_SIZE),
             (GRID_SIZE, GRID_SIZE)
@@ -53,24 +58,28 @@ class GameObject:
 
 
 class Snake(GameObject):
-    """Класс змеи в игре."""
+    """Класс, представляющий змею в игре."""
 
     def __init__(self):
-        """Инициализирует змею в начальной позиции."""
-        super().__init__(
-            position=(
-                GRID_WIDTH // 2,
-                GRID_HEIGHT // 2
-            ),
-            body_color=GREEN
-        )
-        self.length = 1
-        self.positions = [self.position]
+        """Инициализация змейки значениям по умолчанию."""
+        super().__init__()
+        self.body_color = GREEN
+        self.length = INITIAL_LENGTH
+        self.positions = [(GRID_WIDTH // 2, GRID_HEIGHT // 2)]
         self.direction = random.choice([UP, DOWN, LEFT, RIGHT])
-        self.score = 0
+        self.score = INITIAL_SCORE
+
+    def draw(self, surface):
+        """Отрисовка змейки на игровой поверхности."""
+        for pos in self.positions:
+            r = pygame.Rect(
+                (pos[0] * GRID_SIZE, pos[1] * GRID_SIZE),
+                (GRID_SIZE, GRID_SIZE)
+            )
+            pygame.draw.rect(surface, self.body_color, r)
 
     def move(self):
-        """Перемещает змею в текущем направлении и обрабатывает столкновения."""
+        """Перемещает змейку в текущем направлении."""
         cur = self.positions[0]
         x, y = self.direction
         new = (((cur[0] + x) % GRID_WIDTH), ((cur[1] + y) % GRID_HEIGHT))
@@ -82,38 +91,37 @@ class Snake(GameObject):
                 self.positions.pop()
 
     def reset(self):
-        """Сбрасывает змею в начальное состояние."""
-        self.length = 1
-        self.positions = [(
-            GRID_WIDTH // 2, GRID_HEIGHT // 2
-        )]
+        """Возвращает змейку в состояние по умолчанию."""
+        self.length = INITIAL_LENGTH
+        self.positions = [(GRID_WIDTH // 2, GRID_HEIGHT // 2)]
         self.direction = random.choice([UP, DOWN, LEFT, RIGHT])
-        self.score = 0
+        self.score = INITIAL_SCORE
 
     def update_direction(self, new_direction):
-        """Обновляет направление движения змеи, если новое направление не противоположно текущему."""
+        """Изменяет направление движения змеи."""
         if (new_direction[0] * -1, new_direction[1] * -1) != self.direction:
             self.direction = new_direction
 
     def get_head_position(self):
-        """Возвращает позицию головы змеи."""
+        """Определение положения головы змеи."""
         return self.positions[0]
 
 
 class Apple(GameObject):
-    """Класс яблока в игре."""
+    """Класс, представляющий яблоко в игре."""
 
     def __init__(self):
-        """Инициализирует яблоко в случайной позиции."""
+        """Инициализирует яблоко вызовом суперкласса."""
         super().__init__(position=self.randomize_position(), body_color=RED)
 
     def randomize_position(self):
-        """Возвращает случайную позицию для яблока на сетке."""
-        return (random.randint(0, GRID_WIDTH - 1), random.randint(0, GRID_HEIGHT - 1))
+        """Распределяет случайным образом положение яблока."""
+        return (random.randint(0, GRID_WIDTH - 1),
+                random.randint(0, GRID_HEIGHT - 1))
 
 
 def handle_keys():
-    """Обрабатывает нажатия клавиш и возвращает новое направление движения."""
+    """Обрабатывает вводимые пользователем данные."""
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -130,42 +138,40 @@ def handle_keys():
     return None
 
 
-def draw_objects(snake, apple):
-    """Отрисовывает все игровые объекты и обновляет экран."""
-    screen.fill(BOARD_BACKGROUND_COLOR)
-    draw_score(snake.score)
-    for position in snake.positions:
-        snake.body_color = GREEN
-        snake.position = position
-        snake.draw(screen)
-    apple.draw(screen)
+def draw_objects(surface, snake, apple):
+    """Отрисовка всех игровых объектов на поверхности."""
+    surface.fill(BLACK)
+    snake.draw(surface)
+    apple.draw(surface)
+    text = pygame.font.SysFont('Arial', 36).render(
+        f"Score: {snake.score}", True, WHITE)
+    surface.blit(text, (5, 5))
     pygame.display.update()
 
 
-def draw_score(score):
-    """Отрисовывает счёт игры."""
-    font = pygame.font.SysFont(None, 36)
-    score_text = font.render(f"Score: {score}", True, WHITE)
-    screen.blit(score_text, (5, 5))
-
-
 def main():
-    """Главная функция, в которой происходит игровой цикл."""
+    """Основной игровой цикл."""
     snake = Snake()
     apple = Apple()
 
     while True:
-        clock.tick(10)
-        new_direction = handle_keys()
-        if new_direction:
-            snake.update_direction(new_direction)
+        direction = handle_keys()
+        if direction:
+            snake.update_direction(direction)
+
         snake.move()
         if snake.get_head_position() == apple.position:
             snake.length += 1
             snake.score += 1
             apple.position = apple.randomize_position()
-        draw_objects(snake, apple)
+
+        screen.fill(BLACK)
+        draw_objects(screen, snake, apple)
+        pygame.display.update()
+        clock.tick(10)
 
 
 if __name__ == "__main__":
     main()
+
+# Последняя новая строка добавлена в соответствии с PEP8
